@@ -1,0 +1,235 @@
+{
+  "info": {
+    "name": "Contact Management API",
+    "description": "JWT-secured Contact Management API built with ASP.NET Core 10. Login first; the token is stored automatically in the `token` collection variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:5001" },
+    { "key": "token", "value": "" },
+    { "key": "contactId", "value": "1" },
+    { "key": "categoryId", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"Str0ng!Password\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.success && body.data && body.data.token) {",
+                  "    pm.collectionVariables.set('token', body.data.token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "noauth" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane@example.com\",\n  \"password\": \"Str0ng!Password\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contacts",
+      "item": [
+        {
+          "name": "Create Contact",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data) pm.collectionVariables.set('contactId', body.data.contactId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phoneNumber\": \"+15551234567\",\n  \"alternatePhoneNumber\": null,\n  \"address\": \"123 Main St\",\n  \"company\": \"Acme Corp\",\n  \"jobTitle\": \"Engineer\",\n  \"notes\": \"Met at conference\",\n  \"isFavorite\": false,\n  \"categoryIds\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/contacts"
+          }
+        },
+        {
+          "name": "Get All Contacts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contacts?page=1&pageSize=10&sortBy=FullName&sortDirection=Asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contacts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "sortBy", "value": "FullName" },
+                { "key": "sortDirection", "value": "Asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Contacts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/contacts/search?search=john&page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contacts", "search"],
+              "query": [
+                { "key": "search", "value": "john" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Favorites",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/contacts/favorites" }
+        },
+        {
+          "name": "Get Contact By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/contacts/{{contactId}}" }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"John Doe Jr\",\n  \"email\": \"john@example.com\",\n  \"phoneNumber\": \"+15559998888\",\n  \"company\": \"Acme Corp\",\n  \"jobTitle\": \"Senior Engineer\",\n  \"notes\": \"Updated notes\",\n  \"isFavorite\": false\n}"
+            },
+            "url": "{{baseUrl}}/api/contacts/{{contactId}}"
+          }
+        },
+        {
+          "name": "Mark As Favorite",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/api/contacts/{{contactId}}/favorite?isFavorite=true" }
+        },
+        {
+          "name": "Remove From Favorites",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/api/contacts/{{contactId}}/favorite?isFavorite=false" }
+        },
+        {
+          "name": "Delete Contact",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/contacts/{{contactId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.data) pm.collectionVariables.set('categoryId', body.data.categoryId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryName\": \"Work\",\n  \"description\": \"Work-related contacts\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Get All Categories",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/categories" }
+        },
+        {
+          "name": "Get Category By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/categories/{{categoryId}}" }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryName\": \"Business\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Assign Contact To Category",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}/contacts/{{contactId}}"
+          }
+        },
+        {
+          "name": "Get Contacts In Category",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/categories/{{categoryId}}/contacts" }
+        },
+        {
+          "name": "Remove Contact From Category",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}/contacts/{{contactId}}"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/categories/{{categoryId}}" }
+        }
+      ]
+    }
+  ]
+}
